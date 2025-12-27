@@ -3,6 +3,10 @@
 RtcContext RtcCplr_syncObt;
 U32 RtcCplr_fastRTCSlot = 0;
 
+struct StubContext
+{
+};
+
 void cdhsCyclicInit(void)
 {
 
