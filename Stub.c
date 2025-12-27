@@ -78,3 +78,7 @@ rtems_status_code rtems_clock_get (
 {
   return 0;
 }
+
+void Stub_init()
+{
+}
