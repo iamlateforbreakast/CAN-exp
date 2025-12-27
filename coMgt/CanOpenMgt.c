@@ -218,12 +218,20 @@ void CanOpenMgt_busMgr(rtems_task_argument busId)
       CanOpenBus_storeItFromStart(pCtx->busId, ((pCtx->cycles * FAST_RTC_SLOTS_IN_RTC) + pCtx->itInCycle));
 
       if ((pCtx->actPmHealth == E_CO_PM_HEALTH_SAFE) &&
-          (pCtx->extCanHealth == E_CO_EXTCAN_HEALTH_SAFE))
+        (pCtx->extCanHealth == E_CO_EXTCAN_HEALTH_SAFE))
       {
-        pCtx->curState = E_COSTATE_OFF;
-        CanOpenAction_updateHkArea(pCtx, E_COSTATE_OFF);
+        CanOpenAction_busMgrAutom(pCtx);
       }
-
+      else
+      {
+        /* update the HK at the beginning of a cycle */
+        if ((pCtx->curState != E_COSTATE_OFF) && (pCtx->itInCycle == 0))
+        {
+          pCtx->curState = E_COSTATE_OFF;
+          CanOpenAction_updateHkArea(pCtx,  E_COSTATE_OFF);
+        }
+      }
+      
       /* wait for the next IT sync event */
       slotToWait = (pCtx->itInCycle + 1) % FAST_RTC_SLOTS_IN_RTC;
       rtEvtOut = 0;
