@@ -23,6 +23,19 @@ void CanOpenAction_busMgrAutom(CoCtx *pCtx)
   CoEvt evt = E_COEVT_END;
   CoState state = E_COSTATE_END;
   CoTrans const *pTrans = NULL;
+
+  while (pTrans == NULL)
+  {
+    /* retrieve the next event */
+    evt = coEvtDecode (pCtx);
+  
+    /* identify the action */
+    pTrans = coTransGet(evt, pCtx->curState);
+  }
+
+  state = pTrans->action(pCtx);
+  pCtx->lastEvt = evt;
+  pCtx->nEvt++;
 }
 
 PUBLIC void CanOpenAction_updateHkArea(CoCtx *pCtx, CoState entryState)
