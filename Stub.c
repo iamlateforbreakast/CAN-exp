@@ -1,11 +1,13 @@
 #include "Stub.h"
+#include "Task.h"
 
 RtcContext RtcCplr_syncObt;
 U32 RtcCplr_fastRTCSlot = 0;
 
-struct StubContext
+typedef struct StubContext
 {
-};
+  Task tasks[5];
+} StubContext;
 
 void cdhsCyclicInit(void)
 {
@@ -54,6 +56,8 @@ rtems_status_code rtems_event_receive (
   rtems_event_set *event_out
 )
 {
+  Task t = Task_identify(s.tasks);
+  
   // Wait for event
   //struct epoll_event events[1];
   //int n = epoll_wait(epfd, events, 1, -1);
@@ -85,4 +89,8 @@ rtems_status_code rtems_clock_get (
 
 void Stub_init()
 {
+  s.tasks[0] = Task_create(): /* RtcCplr */
+  s.tasks[1] = Task_create(); /* Sync */
+  s.tasks[2] = Task_create(); /* PF Bus Mgr */
+  s.tasks[3] = Task_create(); /* PL Bus Mgr */
 }
