@@ -29,6 +29,8 @@ typedef struct CoCtx
   U16 cucF16B;
 } CoCtx;
 
+typedef CoState(*CoAction) (CoCtx *pCtx);
+
 IMPORT CoCtx CoMgr_ctx[ROV_CANBUS_NUM];
 
 PUBLIC CoStatus CanOpenAction_setup(CoCtx *pCtx, U16 evtPid);
