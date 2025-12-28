@@ -32,4 +32,18 @@ typedef enum
   E_COSTATUS_BUS_BUSY
 } CoStatus;
 
+typedef enum
+{
+  E_COEVT_10HZ = 20,	/**< @brief 10Hz RTC event */
+  E_COEVT_200HZ,	/**< @brief 200Hz Timer event */
+  E_COEVT_START,	/**< @brief Start (NMT) command event */
+  E_COEVT_STOP,		/**< @brief Stop (NMT) command event */
+  E_COEVT_ENTER_PRE_OP, /**< @brief EntryPreOp (NMT) command event */
+  E_COEVT_RESET,	/**< @brief Reset (NMT) command event */
+  E_COEVT_SWITCH_BUS,	/**< @brief Switch Bus (TC) command event */
+  E_COEVT_TT_TIMEOUT,	/**< @brief TToggle Timeout event */
+  E_COEVT_IGNORED,	/**< @brief ignored event */
+  E_COEVT_END		/**< @brief limit marker */
+} CoEvt;
+
 #endif /* _CanOpenCOmmon_ */
