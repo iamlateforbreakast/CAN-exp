@@ -1,10 +1,14 @@
 /* Task.c */
 
 #include "Task.h"
+#include "pthread.h"
 
-struct Task
+Task * Task_create()
 {
-  pthread_t pthreadId;
-  int rank;
-  int epfd;
+  return 0;
+}
+
+Task * Task_identify()
+{
+  return 0;
 }

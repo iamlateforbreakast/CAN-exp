@@ -8,6 +8,9 @@ typedef struct CoTrans
     CoAction action;   /**< @brief corresponding 'action' to be performed */
 } CoTrans;
 
+PRIVATE CoTrans const *coTransGet(CoEvt, CoState state);
+PRIVATE CoEvt coEvtDecode (CoCtx *pCtx);
+
 CoCtx CoMgr_ctx[ROV_CANBUS_NUM] =
 {
   {
@@ -50,12 +53,18 @@ PUBLIC void CanOpenAction_updateHkArea(CoCtx *pCtx, CoState entryState)
 
 }
 
+PRIVATE CoTrans const *coTransGet(CoEvt, CoState state)
+{
+  return 0;
+}
+
 PRIVATE CoEvt coEvtDecode (CoCtx *pCtx)
 {
   CoEvt coEvt;
   Uint idx;
   Uint cmd;
   
+  #if 0
   /* upon CYCLE event */
   if ((pCtx->slotInCycle == 0) && (pCtx->itInCycle == 0))
   {
@@ -100,5 +109,6 @@ PRIVATE CoEvt coEvtDecode (CoCtx *pCtx)
     coEvt = E_COEVT_200HZ;
   }
   
+  #endif
   return coEvt;
 }

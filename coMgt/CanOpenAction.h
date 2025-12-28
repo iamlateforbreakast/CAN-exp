@@ -15,6 +15,10 @@ typedef struct CoCtx
   rtems_id taskId;
 
   CoState curState;
+  CoState lastState;
+  Uint nTrans;
+  CoEvt lastEvt;
+  Uint nEvt;
 
   Uint cycles;
   Uint slotInCycle;
@@ -34,5 +38,6 @@ typedef CoState(*CoAction) (CoCtx *pCtx);
 IMPORT CoCtx CoMgr_ctx[ROV_CANBUS_NUM];
 
 PUBLIC CoStatus CanOpenAction_setup(CoCtx *pCtx, U16 evtPid);
+PUBLIC void CanOpenAction_busMgrAutom(CoCtx *pCtx);
 PUBLIC void CanOpenAction_updateHkArea(CoCtx *pCtx, CoState entryState);
 #endif /* _CanOpenAction_ */

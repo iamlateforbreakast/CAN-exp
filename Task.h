@@ -1,5 +1,14 @@
 /* Task.h */
+#include "Stub.h"
+#include "pthread.h"
 
-typedef struct Task Task;
+typedef struct Task
+{
+  pthread_t pthreadId;
+  int rank;
+  int epfd;
+}
+Task;
 
-Task * Task_create();
+PUBLIC Task *Task_create();
+PUBLIC Task *Task_identify();

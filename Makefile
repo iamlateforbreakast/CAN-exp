@@ -5,6 +5,7 @@ SOURCES = \
 	coMgt/CanOpenMgt.c \
 	coMgt/CanOpenBus.c \
 	coMgt/CanOpenAction.c \
+	Task.c \
 	Stub.c
 
 OBJECTS = $(SOURCES:.c=.o)
