@@ -8,6 +8,7 @@
 #define MAX_TASK (5)
 
 static Task *tasks[MAX_TASK];
+static int nbTasks = 0;
 
 PUBLIC Task *Task_create(void *(*start_routine)(void *))
 {
@@ -30,19 +31,21 @@ PUBLIC Task *Task_create(void *(*start_routine)(void *))
   task->pthreadId = handle;
   task->epfd = epfd;
 
+  tasks[nbTasks] = task;
+  nbTasks ++;
+
   return task;
 }
 
 Task * Task_identify()
 {
-  int handle = pthread_self();
+  pthread_t handle = pthread_self();
 
   for (int i=0; i<MAX_TASK; i++)
   {
-    if (handle == (tasks[i]->pthreadId))
+    if ((tasks[i]!=0) && (handle == (tasks[i]->pthreadId)))
     {
       return tasks[i];
-      
     }
   }
 

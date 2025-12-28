@@ -29,16 +29,6 @@ typedef struct TestContext
 
 static TestContext t;
 
-// Helper to arm a periodic timerfd
-static int arm_timerfd(int tfd, int period_ms) {
-    struct itimerspec its = {0};
-    its.it_value.tv_sec = period_ms / 1000;
-    its.it_value.tv_nsec = (period_ms % 1000) * 1000000;
-    its.it_interval = its.it_value; // periodic
-    return timerfd_settime(tfd, 0, &its, NULL);
-}
-
-
 #if 0
 void timer10Hz_handler() {
     printf("Timer 10Hz: %d 200Hz: %d\n", t.ticks10Hz, t.ticks200Hz);
@@ -56,38 +46,6 @@ void timer200Hz_handler() {
 
 int main()
 {
-  t.tfd10Hz = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-  if (t.tfd10Hz == -1) {
-    printf("timerfd_create failed\n");
-    return -1;
-  }
-  t.tfd200Hz = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-  if (t.tfd200Hz == -1) {
-    printf("timerfd_create failed\n");
-    return -1;
-  }
-  /* Setup 10Hz timer */
-  if (arm_timerfd(t.tfd10Hz, 100 /* ms */) == -1) {
-    perror("timerfd_settime");
-    close(t.tfd10Hz);
-    return -1;
-  }
-  
-  /* Setup 200Hz timer */
-  if (arm_timerfd(t.tfd200Hz, 5 /* ms */) == -1) {
-    perror("timerfd_settime");
-    close(t.tfd200Hz);
-    return -1;
-  }
-  struct epoll_event ev200Hz = {0};
-  ev200Hz.events = EPOLLIN;
-  ev200Hz.data.u32 = 0;
-  if (epoll_ctl(t.epfd, EPOLL_CTL_ADD, t.tfd200Hz, &ev200Hz) == -1) {
-    printf("epoll_ctl ADD failed\n");
-    close(t.tfd200Hz);
-    return -1;
-  }
-
   Stub_init();
 
   for (;;)

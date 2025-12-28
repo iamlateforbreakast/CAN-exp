@@ -108,6 +108,15 @@ rtems_status_code rtems_clock_get (
   return 0;
 }
 
+// Helper to arm a periodic timerfd
+static int arm_timerfd(int tfd, int period_ms) {
+    struct itimerspec its = {0};
+    its.it_value.tv_sec = period_ms / 1000;
+    its.it_value.tv_nsec = (period_ms % 1000) * 1000000;
+    its.it_interval = its.it_value; // periodic
+    return timerfd_settime(tfd, 0, &its, NULL);
+}
+
 void * rtcCplr_taskBody(void * p)
 {
   Task *self = Task_identify();
@@ -116,6 +125,18 @@ void * rtcCplr_taskBody(void * p)
   int tfd200Hz;
 
   /* Initialisation */
+  tfd10Hz = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+  if (tfd10Hz == -1) {
+    printf("timerfd_create failed\n");
+    return 0;
+  }
+  /* Setup 10Hz timer */
+  if (arm_timerfd(tfd10Hz, 100 /* ms */) == -1) {
+    perror("timerfd_settime");
+    close(tfd10Hz);
+    return 0;
+  }
+
   struct epoll_event ev10Hz = {0};
   ev10Hz.events = EPOLLIN;
   ev10Hz.data.u32 = 0;
@@ -125,11 +146,30 @@ void * rtcCplr_taskBody(void * p)
     return 0;
   }
 
+  tfd200Hz = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+  if (tfd200Hz == -1) {
+    printf("timerfd_create failed\n");
+    return 0;
+  }
+  /* Setup 200Hz timer */
+  if (arm_timerfd(tfd200Hz, 5 /* ms */) == -1) {
+    perror("timerfd_settime");
+    close(tfd200Hz);
+    return 0;
+  }
+  struct epoll_event ev200Hz = {0};
+  ev200Hz.events = EPOLLIN;
+  ev200Hz.data.u32 = 0;
+  if (epoll_ctl(self->epfd, EPOLL_CTL_ADD, tfd200Hz, &ev200Hz) == -1) {
+    printf("epoll_ctl ADD failed\n");
+    close(tfd200Hz);
+    return 0;
+  }
   /* Main loop */
   struct epoll_event events[2];
   for (;;)
   {
-    int n = epoll_wait(self->epfd, events, 2, -1);
+    int n = epoll_wait(self->epfd, events, 1, -1);
     if (n < 0) {
       if (errno == EINTR) continue;
         printf("epoll_wait\n");
@@ -141,12 +181,14 @@ void * rtcCplr_taskBody(void * p)
       uint64_t expirations10Hz = 0;
       ssize_t r = read(tfd10Hz, &expirations10Hz, sizeof(expirations10Hz));
       if (r == sizeof(expirations10Hz) && expirations10Hz > 0) {
+        printf("RTC 10Hz\n");
         RtcCplr_fastRTCSlot = 0;
         //timer10Hz_handler(); Signal 10Hz
       }
       uint64_t expirations200Hz = 0;
       r = read(tfd200Hz, &expirations200Hz, sizeof(expirations200Hz));
       if (r == sizeof(expirations200Hz) && expirations200Hz > 0) {
+        printf("RTC 200Hz\n");
         RtcCplr_fastRTCSlot++;
         // timer200Hz_handler(); Signal 200Hz
       }
@@ -177,6 +219,6 @@ void Stub_init()
 {
   Task_create(&rtcCplr_taskBody); /* RtcCplr */
   Task_create(&syncTaskBody); /* Sync */
-  Task_create(&pfBusMgrTaskBody); /* PF Bus Mgr */
-  Task_create(&plBusMgrTaskBody); /* PL Bus Mgr */
+  //Task_create(&pfBusMgrTaskBody); /* PF Bus Mgr */
+  //Task_create(&plBusMgrTaskBody); /* PL Bus Mgr */
 }
