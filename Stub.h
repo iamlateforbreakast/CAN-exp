@@ -124,4 +124,6 @@ IMPORT void cdhsInitWait(void);
 
 IMPORT U32 RtcCplr_fastRTCSlot;
 
+void Stub_init();
+
 #endif /* _STUB_H_ */

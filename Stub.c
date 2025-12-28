@@ -13,13 +13,6 @@
 RtcContext RtcCplr_syncObt;
 U32 RtcCplr_fastRTCSlot = 0;
 
-typedef struct StubContext
-{
-  
-} StubContext;
-
-StubContext s;
-
 void cdhsCyclicInit(void)
 {
 
@@ -98,12 +91,22 @@ rtems_status_code rtems_clock_get (
   return 0;
 }
 
-void * rtcCplrTaskBody(void * p)
+void * rtcCplr_taskBody(void * p)
 {
   Task *self = Task_identify();
 
   int tfd10Hz;
   int tfd200Hz;
+
+  /* Initialisation */
+  struct epoll_event ev10Hz = {0};
+  ev10Hz.events = EPOLLIN;
+  ev10Hz.data.u32 = 0;
+  if (epoll_ctl(self->epfd, EPOLL_CTL_ADD, tfd10Hz, &ev10Hz) == -1) {
+    printf("epoll_ctl ADD failed\n");
+    close(tfd10Hz);
+    return 0;
+  }
 
   /* Main loop */
   struct epoll_event events[2];
@@ -155,7 +158,7 @@ void * plBusMgrTaskBody(void * p)
 
 void Stub_init()
 {
-  Task_create(&rtcCplrTaskBody); /* RtcCplr */
+  Task_create(&rtcCplr_taskBody); /* RtcCplr */
   Task_create(&syncTaskBody); /* Sync */
   Task_create(&pfBusMgrTaskBody); /* PF Bus Mgr */
   Task_create(&plBusMgrTaskBody); /* PL Bus Mgr */

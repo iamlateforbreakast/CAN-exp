@@ -56,7 +56,7 @@ static int arm_timerfd(int tfd, int period_ms) {
 }
 
 
-
+#if 0
 void timer10Hz_handler() {
     printf("Timer 10Hz: %d 200Hz: %d\n", t.ticks10Hz, t.ticks200Hz);
     t.ticks10Hz ++;
@@ -69,6 +69,7 @@ void timer200Hz_handler() {
     RtcCplr_fastRTCSlot++;
     pthread_cond_signal(&t.signal200Hz);
 }
+#endif
 
 int main()
 {
@@ -111,7 +112,7 @@ int main()
     return -1;
   }
 
-  
+  Stub_init();
 
   return 0;
 }
