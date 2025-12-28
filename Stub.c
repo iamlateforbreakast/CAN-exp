@@ -38,6 +38,23 @@ void cdhsInitWait(void)
 
 }
 
+T_UINT32 cdhsCyclicWait(T_UINT32 cyclicHdl)
+{
+  //pthread_mutex_lock(&t.clock10Hz);
+  //pthread_cond_wait(&t.signal10Hz, &t.clock10Hz);
+  //pthread_mutex_unlock(&t.clock10Hz);
+  return 0;
+}
+
+Bool RtcCplr_waitForFastRTCSlotEvt(T_UINT32 timeout)
+{
+  //pthread_mutex_lock(&t.clock200Hz);
+  //pthread_cond_wait(&t.signal200Hz, &t.clock200Hz);
+  //pthread_mutex_unlock(&t.clock200Hz);
+
+  return 1;
+}
+
 rtems_status_code rtems_task_ident (
   rtems_name name,
   unsigned32 node,

@@ -29,23 +29,6 @@ typedef struct TestContext
 
 static TestContext t;
 
-T_UINT32 cdhsCyclicWait(T_UINT32 cyclicHdl)
-{
-  pthread_mutex_lock(&t.clock10Hz);
-  pthread_cond_wait(&t.signal10Hz, &t.clock10Hz);
-  pthread_mutex_unlock(&t.clock10Hz);
-  return 0;
-}
-
-Bool RtcCplr_waitForFastRTCSlotEvt(T_UINT32 timeout)
-{
-  pthread_mutex_lock(&t.clock200Hz);
-  pthread_cond_wait(&t.signal200Hz, &t.clock200Hz);
-  pthread_mutex_unlock(&t.clock200Hz);
-
-  return 1;
-}
-
 // Helper to arm a periodic timerfd
 static int arm_timerfd(int tfd, int period_ms) {
     struct itimerspec its = {0};
@@ -89,14 +72,7 @@ int main()
     close(t.tfd10Hz);
     return -1;
   }
-  struct epoll_event ev10Hz = {0};
-  ev10Hz.events = EPOLLIN;
-  ev10Hz.data.u32 = 0;
-  if (epoll_ctl(t.epfd, EPOLL_CTL_ADD, t.tfd10Hz, &ev10Hz) == -1) {
-    printf("epoll_ctl ADD failed\n");
-    close(t.tfd10Hz);
-    return -1;
-  }
+  
   /* Setup 200Hz timer */
   if (arm_timerfd(t.tfd200Hz, 5 /* ms */) == -1) {
     perror("timerfd_settime");
@@ -113,6 +89,11 @@ int main()
   }
 
   Stub_init();
+
+  for (;;)
+  {
+    sleep(1);
+  }
 
   return 0;
 }
