@@ -3,6 +3,13 @@
 
 #include "coMgt/CanOpenMgt.h"
 
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/epoll.h>
+#include <sys/eventfd.h>
+#include <sys/timerfd.h>
+#include <errno.h>
+
 RtcContext RtcCplr_syncObt;
 U32 RtcCplr_fastRTCSlot = 0;
 
@@ -93,6 +100,38 @@ rtems_status_code rtems_clock_get (
 
 void * rtcCplrTaskBody(void * p)
 {
+  Task *self = Task_identify();
+
+  int tfd10Hz;
+  int tfd200Hz;
+
+  /* Main loop */
+  struct epoll_event events[2];
+  for (;;)
+  {
+    int n = epoll_wait(self->epfd, events, 2, -1);
+    if (n < 0) {
+      if (errno == EINTR) continue;
+        printf("epoll_wait\n");
+        break;
+    }
+    for (int i = 0; i < n; i++) {
+      int idx = events[i].data.u32;
+
+      uint64_t expirations10Hz = 0;
+      ssize_t r = read(tfd10Hz, &expirations10Hz, sizeof(expirations10Hz));
+      if (r == sizeof(expirations10Hz) && expirations10Hz > 0) {
+        RtcCplr_fastRTCSlot = 0;
+        //timer10Hz_handler(); Signal 10Hz
+      }
+      uint64_t expirations200Hz = 0;
+      r = read(tfd200Hz, &expirations200Hz, sizeof(expirations200Hz));
+      if (r == sizeof(expirations200Hz) && expirations200Hz > 0) {
+        RtcCplr_fastRTCSlot++;
+        // timer200Hz_handler(); Signal 200Hz
+      }
+    }
+  }
   return 0;
 }
 

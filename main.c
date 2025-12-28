@@ -72,13 +72,6 @@ void timer200Hz_handler() {
 
 int main()
 {
-  /* Create epoll */
-  t.epfd = epoll_create1(EPOLL_CLOEXEC);
-  if (t.epfd == -1)
-  {
-    printf("epoll_create1 failed\n");
-    return 1;
-  }
   t.tfd10Hz = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
   if (t.tfd10Hz == -1) {
     printf("timerfd_create failed\n");
@@ -118,33 +111,7 @@ int main()
     return -1;
   }
 
-  /* Main loop */
-  struct epoll_event events[2];
-  for (;;)
-  {
-    int n = epoll_wait(t.epfd, events, 2, -1);
-    if (n < 0) {
-      if (errno == EINTR) continue;
-        printf("epoll_wait\n");
-        break;
-    }
-    for (int i = 0; i < n; i++) {
-      int idx = events[i].data.u32;
-
-      uint64_t expirations10Hz = 0;
-      ssize_t r = read(t.tfd10Hz, &expirations10Hz, sizeof(expirations10Hz));
-      if (r == sizeof(expirations10Hz) && expirations10Hz > 0) {
-        // Invoke callback; pass expirations to account for backlog
-        timer10Hz_handler();
-      }
-      uint64_t expirations200Hz = 0;
-      r = read(t.tfd200Hz, &expirations200Hz, sizeof(expirations200Hz));
-      if (r == sizeof(expirations200Hz) && expirations200Hz > 0) {
-        // Invoke callback; pass expirations to account for backlog
-        timer200Hz_handler();
-      }
-    }
-  }
+  
 
   return 0;
 }

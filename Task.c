@@ -3,8 +3,6 @@
 #include "Task.h"
 #include <stdlib.h>
 #include <sys/epoll.h>
-#include <sys/eventfd.h>
-#include <sys/timerfd.h>
 #include "pthread.h"
 
 #define MAX_TASK (5)
