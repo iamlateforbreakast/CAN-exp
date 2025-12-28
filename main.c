@@ -7,7 +7,7 @@
 #include <time.h>
 #include <errno.h>
 
-#include "coMgt/CanOpenMgt.h"
+#include "Stub.h"
 
 typedef struct TestContext
 {
@@ -55,23 +55,7 @@ static int arm_timerfd(int tfd, int period_ms) {
     return timerfd_settime(tfd, 0, &its, NULL);
 }
 
-void * syncTaskBody(void * p)
-{
-  CanOpenMgt_syncTaskBody(0);
-  return 0;
-}
 
-void * pfBusMgrTaskBody(void * p)
-{
-  CanOpenMgt_busMgr(0);
-  return 0;
-}
-
-void * plbusMgrTaskBody(void * p)
-{
-  CanOpenMgt_busMgr(1);
-  return 0;
-}
 
 void timer10Hz_handler() {
     printf("Timer 10Hz: %d 200Hz: %d\n", t.ticks10Hz, t.ticks200Hz);
@@ -88,25 +72,6 @@ void timer200Hz_handler() {
 
 int main()
 {
-  /* 3 threads: Synchro, PF bus mgr, PL bus mgr */
-  int err1 = pthread_create(&t.syncHandle, NULL, &syncTaskBody, NULL);
-  if (err1 != 0)
-  {
-    printf("Sync Thread creation failed\n");
-    return 1;
-  }
-  int err2 = pthread_create(&t.pfBusMgrHandle, NULL, &pfBusMgrTaskBody, NULL);
-  if (err2 != 0)
-  {
-    printf("PF Bus Mgr thread creation failed\n");
-    return 1;
-  }
-  int err3 = pthread_create(&t.plBusMgrHandle, NULL, &plbusMgrTaskBody, NULL);
-  if (err3 != 0)
-  {
-    printf("PL Bus Mgr thread creation failed\n");
-    return 1;
-  }
   /* Create epoll */
   t.epfd = epoll_create1(EPOLL_CLOEXEC);
   if (t.epfd == -1)

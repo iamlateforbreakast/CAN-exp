@@ -1,12 +1,14 @@
 #include "Stub.h"
 #include "Task.h"
 
+#include "coMgt/CanOpenMgt.h"
+
 RtcContext RtcCplr_syncObt;
 U32 RtcCplr_fastRTCSlot = 0;
 
 typedef struct StubContext
 {
-  Task *tasks[5];
+  
 } StubContext;
 
 StubContext s;
@@ -58,7 +60,7 @@ rtems_status_code rtems_event_receive (
   rtems_event_set *event_out
 )
 {
-  Task *t = Task_identify(s.tasks);
+  Task *t = Task_identify();
   
   // Wait for event
   //struct epoll_event events[1];
@@ -89,10 +91,33 @@ rtems_status_code rtems_clock_get (
   return 0;
 }
 
+void * rtcCplrTaskBody(void * p)
+{
+  return 0;
+}
+
+void * syncTaskBody(void * p)
+{
+  CanOpenMgt_syncTaskBody(0);
+  return 0;
+}
+
+void * pfBusMgrTaskBody(void * p)
+{
+  CanOpenMgt_busMgr(0);
+  return 0;
+}
+
+void * plBusMgrTaskBody(void * p)
+{
+  CanOpenMgt_busMgr(1);
+  return 0;
+}
+
 void Stub_init()
 {
-  s.tasks[0] = Task_create(); /* RtcCplr */
-  s.tasks[1] = Task_create(); /* Sync */
-  s.tasks[2] = Task_create(); /* PF Bus Mgr */
-  s.tasks[3] = Task_create(); /* PL Bus Mgr */
+  Task_create(&rtcCplrTaskBody); /* RtcCplr */
+  Task_create(&syncTaskBody); /* Sync */
+  Task_create(&pfBusMgrTaskBody); /* PF Bus Mgr */
+  Task_create(&plBusMgrTaskBody); /* PL Bus Mgr */
 }
