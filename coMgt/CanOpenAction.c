@@ -1,6 +1,13 @@
 #include "coMgt/CanOpenAction.h"
 #include "coMgt/CanOpenBus.h"
 
+typedef struct CoTrans
+{
+    CoState  curState; /**< @brief current automaton state */
+    CoEvt    evtIn;    /**< @brief input event */
+    CoAction action;   /**< @brief corresponding 'action' to be performed */
+} CoTrans;
+
 CoCtx CoMgr_ctx[ROV_CANBUS_NUM] =
 {
   {
