@@ -60,6 +60,12 @@ rtems_status_code rtems_task_ident (
   unsigned32 node,
   Objects_Id *id)
   {
+    if (name == 0) {
+      Task *self = Task_identify();
+      *id = self->name;
+    } else {
+      *id = name;
+    }
     return 0;
   }
 
@@ -77,11 +83,11 @@ rtems_status_code rtems_event_receive (
   rtems_event_set *event_out
 )
 {
-  Task *t = Task_identify();
+  Task *self = Task_identify();
   
   // Wait for event
-  //struct epoll_event events[1];
-  //int n = epoll_wait(epfd, events, 1, -1);
+  struct epoll_event events[1];
+  int n = epoll_wait(self->epfd, events, 1, -1);
 
   return 0;
 }
@@ -91,12 +97,14 @@ rtems_status_code rtems_event_send (
   rtems_event_set    event_in
 )
 {
-  //struct epoll_event ev = { .events = EPOLLIN, .data.fd = efd };
-  //epoll_ctl(epfd, EPOLL_CTL_ADD, efd, &ev);
+  Task *t = Task_findByName(id);
+  struct epoll_event ev = { .events = EPOLLIN, .data.fd = t->efd };
+  epoll_ctl(t->epfd, EPOLL_CTL_ADD, t->efd, &ev);
 
   // Trigger event
-  //uint64_t u = 1;
-  //write(efd, &u, sizeof(u));
+  uint64_t u = 1;
+  write(t->efd, &u, sizeof(u));
+
   return 0;
 }
 
@@ -217,8 +225,8 @@ void * plBusMgrTaskBody(void * p)
 
 void Stub_init()
 {
-  Task_create(&rtcCplr_taskBody); /* RtcCplr */
-  Task_create(&syncTaskBody); /* Sync */
-  //Task_create(&pfBusMgrTaskBody); /* PF Bus Mgr */
+  Task_create(1, &rtcCplr_taskBody); /* RtcCplr */
+  Task_create(2, &syncTaskBody); /* Sync */
+  //Task_create(3, &pfBusMgrTaskBody); /* PF Bus Mgr */
   //Task_create(&plBusMgrTaskBody); /* PL Bus Mgr */
 }
