@@ -2,13 +2,15 @@
 #include "Stub.h"
 #include "pthread.h"
 
+#define MAX_EVENTS (32)
+
 typedef struct Task
 {
   uint32_t name;
   pthread_t pthreadId;
   int rank;
   int epfd;
-  int efd;
+  int efd[MAX_EVENTS];
 }
 Task;
 

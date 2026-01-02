@@ -64,7 +64,7 @@ rtems_status_code rtems_task_ident (
       Task *self = Task_identify();
       *id = self->name;
     } else {
-      *id = name;
+      *id = 0; // TBC
     }
     return 0;
   }
@@ -86,7 +86,7 @@ rtems_status_code rtems_event_receive (
   Task *self = Task_identify();
   
   // Wait for event
-  struct epoll_event events[1];
+  struct epoll_event events[32];
   int n = epoll_wait(self->epfd, events, 1, -1);
 
   return 0;
@@ -98,13 +98,16 @@ rtems_status_code rtems_event_send (
 )
 {
   Task *t = Task_findByName(id);
-  struct epoll_event ev = { .events = EPOLLIN, .data.fd = t->efd };
-  epoll_ctl(t->epfd, EPOLL_CTL_ADD, t->efd, &ev);
-
-  // Trigger event
-  uint64_t u = 1;
-  write(t->efd, &u, sizeof(u));
-
+  for (int i =1; i<=MAX_EVENTS; i << 1)
+  {
+    if (event_in & i)
+    {
+      // Trigger event
+      uint64_t u = 1;
+      write(t->efd[i], &u, sizeof(u));
+    }
+  }
+  
   return 0;
 }
 

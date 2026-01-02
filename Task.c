@@ -16,7 +16,7 @@ PUBLIC Task *Task_create(uint32_t name, void *(*start_routine)(void *))
 {
   pthread_t handle;
   int epfd;
-  int efd;
+  int efd[MAX_EVENTS];
 
   int err = pthread_create(&handle, NULL, start_routine, NULL);
   if (err != 0)
@@ -30,13 +30,25 @@ PUBLIC Task *Task_create(uint32_t name, void *(*start_routine)(void *))
     printf("epoll_create1 failed\n");
     return 0;
   }
-  efd = eventfd(0, EFD_CLOEXEC);
-  if (efd == -1)
+  for (int i=0; i<MAX_EVENTS; i++)
   {
-    printf("eventfd creation failed\n");
-    close(epfd);
-    return 0;
+    efd[i] = eventfd(0, EFD_CLOEXEC);
+    if (efd[i] == -1)
+    {
+      printf("eventfd[%d] creation failed\n", i);
+      close(epfd);
+      return 0;
+    }
+    struct epoll_event ev = { .events = EPOLLIN, .data.fd = efd[i] };
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, efd[i], &ev) == -1)
+    {
+      printf("epoll_ctl ADD failed for efd[%d]\n", i);
+      close(efd[i]);
+      close(epfd);
+      return 0;
+    }
   }
+  
   Task *task = (Task*)malloc(sizeof(Task));
   task->name = name;
   task->pthreadId = handle;
