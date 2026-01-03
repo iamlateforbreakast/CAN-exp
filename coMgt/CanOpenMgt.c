@@ -68,6 +68,11 @@ void CanOpenMgt_init(U16 evtPid)
   rtcSyncCtx.fineTime16B = 0;
 }
 
+void CanOpenMgt_setCanBusInitialised(Bool initialised)
+{
+  CoMgr_canBusInitialised = initialised;
+}
+
 void CanOpenMgt_syncTaskBody(rtems_task_argument unused)
 {
   Uint cyclicHdl;
@@ -142,6 +147,7 @@ void CanOpenMgt_syncTaskBody(rtems_task_argument unused)
     {
       if (CoMgr_canBusInitialised == TRUE)
       {
+        printf("Here\n");
         if ((CoMgr_isFirstActivation == FALSE) || (rtcSyncCtx.itCurSlot ==0))
         {
           CoMgr_isFirstActivation = FALSE;

@@ -89,6 +89,20 @@ rtems_status_code rtems_event_receive (
   struct epoll_event events[32];
   int n = epoll_wait(self->epfd, events, 1, -1);
 
+  for (int i=0; i<n; i++) {
+    int fd = events[i].data.fd;
+    for (int j =1; j<=MAX_EVENTS; j << 1)
+    {
+      if ((event_in & j) && (fd == self->efd[j]))
+      {
+        // Consume event
+        uint64_t u;
+        read(fd, &u, sizeof(u));
+        *event_out = j;
+        return 0;
+      }
+    }
+  }
   return 0;
 }
 
@@ -132,6 +146,8 @@ void * rtcCplr_taskBody(void * p)
 {
   Task *self = Task_identify();
 
+  if (!self) return 0;
+  
   int tfd10Hz;
   int tfd200Hz;
 

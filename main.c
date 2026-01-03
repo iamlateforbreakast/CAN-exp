@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include "Stub.h"
+#include "coMgt/CanOpenMgt.h"
 
 typedef struct TestContext
 {
@@ -17,6 +18,8 @@ static TestContext t;
 int main()
 {
   Stub_init();
+  sleep(1);
+  CanOpenMgt_setCanBusInitialised(TRUE);
 
   for (;;)
   {
