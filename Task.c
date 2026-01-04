@@ -11,19 +11,14 @@
 
 static Task *tasks[MAX_TASK];
 static int nbTasks = 0;
-
+static pthread_mutex_t accessMutex = PTHREAD_MUTEX_INITIALIZER;
+;
 PUBLIC Task *Task_create(uint32_t name, void *(*start_routine)(void *))
 {
   pthread_t handle;
   int epfd;
   int efd[MAX_EVENTS];
 
-  int err = pthread_create(&handle, NULL, start_routine, NULL);
-  if (err != 0)
-  {
-    printf("Sync Thread creation failed\n");
-    return 0;
-  }
   epfd = epoll_create1(EPOLL_CLOEXEC);
   if (epfd == -1)
   {
@@ -48,14 +43,31 @@ PUBLIC Task *Task_create(uint32_t name, void *(*start_routine)(void *))
       return 0;
     }
   }
-  
+
   Task *task = (Task*)malloc(sizeof(Task));
   task->name = name;
-  task->pthreadId = handle;
+  task->pthreadId = 0;
   task->epfd = epfd;
+  for (int i = 0; i < MAX_EVENTS; i++) task->efd[i] = efd[i];
 
-  tasks[nbTasks] = task;
-  nbTasks ++;
+  pthread_mutex_lock(&accessMutex);
+  int err = pthread_create(&handle, NULL, start_routine, task);
+  if (err != 0)
+  {
+    printf("Thread creation failed\n");
+    /* cleanup */
+    for (int i = 0; i < MAX_EVENTS; i++) close(efd[i]);
+    close(epfd);
+    tasks[--nbTasks] = NULL;
+    free(task);
+    task = 0;
+  }
+  else{
+    task->pthreadId = handle;
+    tasks[nbTasks] = task;
+    nbTasks ++;
+  }
+  pthread_mutex_unlock(&accessMutex);
 
   return task;
 }
@@ -66,12 +78,25 @@ PUBLIC Task * Task_identify()
 
   for (int i=0; i<MAX_TASK; i++)
   {
+    if (tasks[i]!=0) printf("Task_identify: Task[%d]: handle=%lu, pthreadId=%lu\n", i, handle, tasks[i]->pthreadId);
     if ((tasks[i]!=0) && (handle == (tasks[i]->pthreadId)))
     {
       return tasks[i];
     }
   }
 
+  printf("Error: Task_identify: Task not found for pthreadId %lu\n", handle);
+  for (int i=0; i<MAX_TASK; i++)
+  {
+    if (tasks[i]!=0)
+    {
+      printf("  Task[%d]: name=0x%08X, pthreadId=%lu\n", i, tasks[i]->name, tasks[i]->pthreadId);
+    }
+    else
+    {
+      printf("  Task[%d]: <empty>\n", i);
+    }
+  }
   return 0;
 }
 

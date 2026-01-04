@@ -64,6 +64,7 @@ rtems_status_code rtems_task_ident (
       Task *self = Task_identify();
       *id = self->name;
     } else {
+      printf("rtems_task_ident looking for %d\n", name);
       *id = 0; // TBC
     }
     return 0;
@@ -112,16 +113,22 @@ rtems_status_code rtems_event_send (
 )
 {
   Task *t = Task_findByName(id);
-  for (int i =1; i<=MAX_EVENTS; i << 1)
+  if (!t)
   {
-    if (event_in & i)
-    {
-      // Trigger event
-      uint64_t u = 1;
-      write(t->efd[i], &u, sizeof(u));
-    }
+    printf("Task_findByName %d failed\n", id);
   }
-  
+  else
+  {
+    for (int i =1; i<=MAX_EVENTS; i << 1)
+    {
+      if (event_in & i)
+      {
+        // Trigger event
+        uint64_t u = 1;
+        write(t->efd[i], &u, sizeof(u));
+      }
+    }
+  } 
   return 0;
 }
 
@@ -144,10 +151,20 @@ static int arm_timerfd(int tfd, int period_ms) {
 
 void * rtcCplr_taskBody(void * p)
 {
+  /* If a Task* was provided, set pthreadId so Task_identify can find us. */
+  if (p) {
+    Task *t = (Task*)p;
+    t->pthreadId = pthread_self();
+  }
+
   Task *self = Task_identify();
 
-  if (!self) return 0;
-  
+  if (!self) 
+  {
+    printf("rtcCplr_taskBody: Task_identify failed\n");
+    return 0;
+  }
+
   int tfd10Hz;
   int tfd200Hz;
 
