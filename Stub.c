@@ -151,12 +151,6 @@ static int arm_timerfd(int tfd, int period_ms) {
 
 void * rtcCplr_taskBody(void * p)
 {
-  /* If a Task* was provided, set pthreadId so Task_identify can find us. */
-  if (p) {
-    Task *t = (Task*)p;
-    t->pthreadId = pthread_self();
-  }
-
   Task *self = Task_identify();
 
   if (!self) 
@@ -263,6 +257,6 @@ void Stub_init()
 {
   Task_create(1, &rtcCplr_taskBody); /* RtcCplr */
   Task_create(2, &syncTaskBody); /* Sync */
-  //Task_create(3, &pfBusMgrTaskBody); /* PF Bus Mgr */
+  Task_create(3, &pfBusMgrTaskBody); /* PF Bus Mgr */
   //Task_create(&plBusMgrTaskBody); /* PL Bus Mgr */
 }
